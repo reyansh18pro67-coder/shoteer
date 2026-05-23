@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Math Alarm</title>
+    <style>
+:root{
+  --bg: #0b1020;
+  --panel: rgba(255,255,255,.06);
+  --panel2: rgba(255,255,255,.09);
+  --text: #eaf0ff;
+  --muted: rgba(234,240,255,.72);
+  --border: rgba(234,240,255,.14);
+  --shadow: 0 20px 60px rgba(0,0,0,.45);
+  --primary: #6ee7ff;
+  --danger: #ff5d74;
+  --ok: #79ffa8;
+}
+
+*{ box-sizing: border-box; }
+html, body{ height: 100%; }
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  background:
+    radial-gradient(1200px 600px at 10% 10%, rgba(110,231,255,.20), transparent 60%),
+    radial-gradient(900px 500px at 90% 30%, rgba(255,93,116,.18), transparent 55%),
+    radial-gradient(700px 500px at 45% 95%, rgba(121,255,168,.14), transparent 60%),
+    var(--bg);
+  color: var(--text);
+}
+
+.app{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 18px 36px;
+}
+
+.header h1{
+  margin: 0 0 6px;
+  font-size: 34px;
+  letter-spacing: .2px;
+}
+.header .sub{
+  margin: 0 0 18px;
+  color: var(--muted);
+}
+
+.grid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 820px){
+  .grid{ grid-template-columns: 1fr; }
+}
+
+.card{
+  background: linear-gradient(180deg, var(--panel), rgba(255,255,255,.03));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 16px 16px 14px;
+}
+.card h2{
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+
+.cardTitleRow{
+  display:flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.cardTitleRow h2{ margin: 0; }
+
+.roundPlus{
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 0;
+  border-color: rgba(110,231,255,.40);
+  background: rgba(110,231,255,.16);
+}
+.roundPlus:hover{
+  background: rgba(110,231,255,.23);
+  border-color: rgba(110,231,255,.58);
+}
+
+.alarmsList{
+  display:flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.alarmItem{
+  display:flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(234,240,255,.12);
+  background: rgba(255,255,255,.05);
+}
+.alarmLeft{
+  display:flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.alarmTime{
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: .2px;
+  font-variant-numeric: tabular-nums;
+}
+.alarmLabel{
+  color: var(--muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+.alarmRight{
+  display:flex;
+  align-items: center;
+  gap: 10px;
+}
+.iconBtn{
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  padding: 0;
+}
+
+/* Toggle switch */
+.switch{
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+}
+.switch input{
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider{
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(234,240,255,.18);
+  transition: .15s;
+  border-radius: 999px;
+}
+.slider:before{
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(234,240,255,.92);
+  transition: .15s;
+  border-radius: 999px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.30);
+}
+.switch input:checked + .slider{
+  background: rgba(121,255,168,.18);
+  border-color: rgba(121,255,168,.35);
+}
+.switch input:checked + .slider:before{
+  transform: translate(20px, -50%);
+}
+
+.row{
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid rgba(234,240,255,.06);
+}
+.row:first-of-type{ border-top: 0; }
+@media (max-width: 460px){
+  .row{ grid-template-columns: 1fr; gap: 6px; }
+}
+
+label{ color: var(--muted); font-size: 14px; }
+input, select, button{
+  font: inherit;
+  color: var(--text);
+}
+input[type="time"], input[type="text"], input[type="number"], input[type="password"], input#answerInput, select{
+  width: 100%;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(234,240,255,.14);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+}
+select[multiple]{ padding: 10px 12px; }
+input[type="checkbox"]{ width: 18px; height: 18px; }
+input:focus, select:focus{
+  border-color: rgba(110,231,255,.55);
+  box-shadow: 0 0 0 4px rgba(110,231,255,.12);
+}
+
+.actions{
+  display:flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+button{
+  border-radius: 12px;
+  border: 1px solid rgba(234,240,255,.16);
+  background: rgba(255,255,255,.07);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: transform .05s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+}
+button:hover{ background: rgba(255,255,255,.10); border-color: rgba(234,240,255,.28); }
+button:active{ transform: translateY(1px); }
+button:disabled{ opacity: .55; cursor: not-allowed; }
+
+.primary{
+  border-color: rgba(110,231,255,.40);
+  background: rgba(110,231,255,.18);
+}
+.primary:hover{ background: rgba(110,231,255,.25); border-color: rgba(110,231,255,.55); }
+
+.danger{
+  border-color: rgba(255,93,116,.45);
+  background: rgba(255,93,116,.18);
+}
+.danger:hover{ background: rgba(255,93,116,.25); border-color: rgba(255,93,116,.60); }
+
+.ghost{
+  background: transparent;
+}
+
+.status{
+  margin-top: 12px;
+  display:flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  width: fit-content;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(234,240,255,.14);
+  background: rgba(255,255,255,.05);
+  color: var(--muted);
+}
+.pill.ok{ border-color: rgba(121,255,168,.35); background: rgba(121,255,168,.12); color: rgba(214,255,231,.95); }
+.pill.ring{ border-color: rgba(255,93,116,.42); background: rgba(255,93,116,.12); color: rgba(255,220,226,.95); }
+
+.small{ font-size: 12.5px; color: var(--muted); }
+.muted{ color: var(--muted); }
+
+.footer{
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Modal */
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display:flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.hidden{ display:none !important; }
+
+.modal{
+  width: min(560px, 100%);
+  background: linear-gradient(180deg, rgba(15,20,38,.96), rgba(10,12,24,.96));
+  border: 1px solid rgba(234,240,255,.14);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.modal-header{
+  display:flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(234,240,255,.10);
+}
+.title{ font-weight: 700; font-size: 18px; }
+.timer{ font-variant-numeric: tabular-nums; color: rgba(234,240,255,.9); }
+
+.challenge{
+  padding: 14px 0 6px;
+}
+.question{
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  margin: 10px 0 12px;
+}
+.answerRow{
+  display:flex;
+  gap: 10px;
+  align-items: center;
+}
+#answerInput{
+  font-size: 18px;
+}
+.error{
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,93,116,.12);
+  border: 1px solid rgba(255,93,116,.35);
+  color: rgba(255,220,226,.95);
+}
+
+.modal-actions{
+  display:flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(234,240,255,.10);
+}
+
+/* Splash / Loading */
+.splash{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(900px 500px at 50% 40%, rgba(110,231,255,.16), transparent 60%),
+    radial-gradient(700px 500px at 60% 70%, rgba(255,93,116,.12), transparent 60%),
+    rgba(6, 8, 16, .94);
+  backdrop-filter: blur(8px);
+}
+.splashInner{
+  text-align: center;
+  padding: 22px 22px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(234,240,255,.14);
+  background: rgba(255,255,255,.05);
+  box-shadow: var(--shadow);
+}
+.logoMark{
+  font-weight: 900;
+  letter-spacing: 2.6px;
+  font-size: 42px;
+  background: linear-gradient(90deg, rgba(110,231,255,.95), rgba(121,255,168,.95), rgba(255,93,116,.9));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(110,231,255,.18);
+  animation: logoPulse 1.15s ease-in-out infinite;
+}
+.logoSub{
+  margin-top: 6px;
+  font-size: 13px;
+  letter-spacing: .6px;
+  color: rgba(234,240,255,.72);
+}
+@keyframes logoPulse{
+  0%{ transform: scale(1); filter: drop-shadow(0 0 0 rgba(110,231,255,.0)); opacity: .92; }
+  50%{ transform: scale(1.03); filter: drop-shadow(0 0 16px rgba(110,231,255,.35)); opacity: 1; }
+  100%{ transform: scale(1); filter: drop-shadow(0 0 0 rgba(110,231,255,.0)); opacity: .92; }
+}
+.splashHide{
+  animation: splashOut .42s ease forwards;
+}
+@keyframes splashOut{
+  from{ opacity: 1; }
+  to{ opacity: 0; visibility: hidden; }
+}
+    </style>
+  </head>
+  <body>
+    <!-- Loading / Splash -->
+    <div id="splash" class="splash" aria-hidden="false">
+      <div class="splashInner">
+        <div class="logoMark" aria-label="REYALARM logo">REYALARM</div>
+        <div class="logoSub">Math Alarm</div>
+      </div>
+    </div>
+
+    <div class="app">
+      <header class="header">
+        <h1>Math Alarm</h1>
+        <p class="sub">Add alarms with the + button. To stop ringing, solve easy math.</p>
+      </header>
+
+      <main class="grid">
+        <section class="card">
+          <div class="cardTitleRow">
+            <h2>Alarms</h2>
+            <button id="addAlarmOpenBtn" class="roundPlus" aria-label="Add alarm">+</button>
+          </div>
+
+          <div id="alarmsList" class="alarmsList" aria-live="polite"></div>
+
+          <div class="row">
+            <label for="snoozeMin">Snooze (minutes)</label>
+            <select id="snoozeMin">
+              <option value="0">Off</option>
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label for="volume">Volume</label>
+            <input id="volume" type="range" min="0" max="100" value="70" />
+          </div>
+
+          <div class="status">
+            <div class="pill" id="alarmStatus">No alarm set</div>
+            <div class="small" id="nextRing"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Math Challenge</h2>
+
+          <div class="row">
+            <label for="difficulty">Difficulty</label>
+            <select id="difficulty">
+              <option value="easy" selected>Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label for="ops">Operations</label>
+            <select id="ops" multiple size="4" aria-describedby="opsHelp">
+              <option value="add" selected>Add (+)</option>
+              <option value="sub" selected>Subtract (−)</option>
+              <option value="mul">Multiply (×)</option>
+              <option value="div">Divide (÷)</option>
+            </select>
+          </div>
+          <div id="opsHelp" class="small">
+            Tip: Hold Ctrl (Windows) / Cmd (Mac) to select multiple.
+          </div>
+
+          <div class="row">
+            <label for="questionsToStop">Questions to stop</label>
+            <select id="questionsToStop">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label for="allowNeg">Allow negatives</label>
+            <input id="allowNeg" type="checkbox" />
+          </div>
+
+          <div class="small muted">
+            Note: Browsers may require you to click once before audio can play.
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <button id="testSoundBtn" class="ghost">Test Sound</button>
+      </footer>
+    </div>
+
+    <!-- Add Alarm Modal -->
+    <div class="modal-backdrop hidden" id="addBackdrop" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="modal-header">
+          <div>
+            <div class="title">Add Alarm</div>
+            <div class="small muted">Choose a time and label, then save.</div>
+          </div>
+          <button id="addCloseBtn" class="ghost" aria-label="Close">✕</button>
+        </div>
+
+        <div class="challenge">
+          <div class="row">
+            <label for="alarmTime">Time</label>
+            <input id="alarmTime" type="time" step="60" required />
+          </div>
+
+          <div class="row">
+            <label for="alarmLabel">Label</label>
+            <input id="alarmLabel" type="text" maxlength="40" placeholder="e.g., Wake up" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="addCancelBtn" class="ghost">Cancel</button>
+          <button id="addSaveBtn" class="primary">Save Alarm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ring Modal -->
+    <div class="modal-backdrop hidden" id="ringBackdrop" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="modal-header">
+          <div>
+            <div class="title" id="ringTitle">Alarm</div>
+            <div class="small muted" id="ringLabel"></div>
+          </div>
+          <div class="timer" id="ringClock"></div>
+        </div>
+
+        <div class="challenge">
+          <div class="question" id="questionText">1 + 1 = ?</div>
+          <div class="answerRow">
+            <input id="answerInput" inputmode="numeric" autocomplete="off" placeholder="Answer" />
+            <button id="submitAnswerBtn" class="primary">Submit</button>
+          </div>
+          <div class="small" id="progressText"></div>
+          <div class="error hidden" id="answerError">Try again.</div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="snoozeBtn" class="ghost">Snooze</button>
+          <button id="stopBtn" class="danger" disabled>Stop (solve first)</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+/* Math Alarm - plain JS (no libraries) */
+
+const el = (id) => document.getElementById(id);
+
+// Splash
+const splashEl = el("splash");
+
+// Add alarm modal inputs
+const alarmTimeEl = el("alarmTime");
+const alarmLabelEl = el("alarmLabel");
+
+const addAlarmOpenBtn = el("addAlarmOpenBtn");
+const alarmsListEl = el("alarmsList");
+
+const addBackdrop = el("addBackdrop");
+const addCloseBtn = el("addCloseBtn");
+const addCancelBtn = el("addCancelBtn");
+const addSaveBtn = el("addSaveBtn");
+
+const snoozeMinEl = el("snoozeMin");
+const volumeEl = el("volume");
+const alarmStatus = el("alarmStatus");
+const nextRing = el("nextRing");
+
+const difficultyEl = el("difficulty");
+const opsEl = el("ops");
+const questionsToStopEl = el("questionsToStop");
+const allowNegEl = el("allowNeg");
+const testSoundBtn = el("testSoundBtn");
+
+const ringBackdrop = el("ringBackdrop");
+const ringTitle = el("ringTitle");
+const ringLabel = el("ringLabel");
+const ringClock = el("ringClock");
+const questionText = el("questionText");
+const answerInput = el("answerInput");
+const submitAnswerBtn = el("submitAnswerBtn");
+const progressText = el("progressText");
+const answerError = el("answerError");
+const snoozeBtn = el("snoozeBtn");
+const stopBtn = el("stopBtn");
+
+const STORAGE_KEY = "mathAlarm_v1";
+
+let state = {
+  alarms: [], // {id, timeHHMM, label, enabled, nextAt}
+  snoozeMin: 5,
+  volume: 70,
+  settings: {
+    difficulty: "easy",
+    ops: ["add", "sub"],
+    questionsToStop: 2,
+    allowNeg: false,
+  },
+};
+
+let tickTimer = null;
+let ringTimer = null;
+let ringing = false;
+let ringingAlarmId = null;
+
+// Challenge state while ringing
+let remainingQuestions = 0;
+let currentQuestion = null; // {a,b,op,answer,text}
+
+// Audio (simple oscillator pattern so no external files needed)
+let audioCtx = null;
+let masterGain = null;
+let beepOsc = null;
+let beepLfo = null;
+let beepLfoGain = null;
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") state = { ...state, ...parsed };
+  } catch {
+    // ignore
+  }
+}
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function formatTime(dOrHHMM) {
+  if (typeof dOrHHMM === "string") return dOrHHMM;
+  return `${pad2(dOrHHMM.getHours())}:${pad2(dOrHHMM.getMinutes())}`;
+}
+
+function getSelectedOps() {
+  const selected = Array.from(opsEl.selectedOptions).map((o) => o.value);
+  // Safety default if user deselects all
+  return selected.length ? selected : ["add"];
+}
+
+function computeNextAlarmTimestamp(hhmm, fromTs = Date.now()) {
+  // hhmm "HH:MM" in local time
+  const [hh, mm] = hhmm.split(":").map(Number);
+  const now = new Date(fromTs);
+  const target = new Date(fromTs);
+  target.setSeconds(0, 0);
+  target.setHours(hh, mm, 0, 0);
+  if (target.getTime() <= now.getTime()) {
+    // next day
+    target.setDate(target.getDate() + 1);
+  }
+  return target.getTime();
+}
+
+function setStatus(text, variant = "idle") {
+  alarmStatus.textContent = text;
+  alarmStatus.classList.remove("ok", "ring");
+  if (variant === "ok") alarmStatus.classList.add("ok");
+  if (variant === "ring") alarmStatus.classList.add("ring");
+}
+
+function uuid() {
+  // good-enough unique ID for local app
+  return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
+}
+
+function normalizeAlarms() {
+  if (!Array.isArray(state.alarms)) state.alarms = [];
+  const now = Date.now();
+  state.alarms = state.alarms.map((a) => {
+    const alarm = {
+      id: String(a.id ?? uuid()),
+      timeHHMM: String(a.timeHHMM ?? a.time ?? "07:00"),
+      label: String(a.label ?? ""),
+      enabled: Boolean(a.enabled ?? true),
+      nextAt: Number(a.nextAt ?? 0),
+    };
+    if (!alarm.nextAt || alarm.nextAt < now - 24 * 3600 * 1000) {
+      alarm.nextAt = computeNextAlarmTimestamp(alarm.timeHHMM, now);
+    }
+    return alarm;
+  });
+}
+
+function getNextEnabledAlarm() {
+  const enabled = state.alarms.filter((a) => a.enabled);
+  if (!enabled.length) return null;
+  enabled.sort((a, b) => a.nextAt - b.nextAt);
+  return enabled[0];
+}
+
+function renderAlarmsList() {
+  alarmsListEl.innerHTML = "";
+  if (!state.alarms.length) {
+    const empty = document.createElement("div");
+    empty.className = "small muted";
+    empty.textContent = "No alarms yet. Tap + to add one.";
+    alarmsListEl.appendChild(empty);
+    return;
+  }
+
+  const sorted = [...state.alarms].sort((a, b) => {
+    const ta = a.timeHHMM ?? "00:00";
+    const tb = b.timeHHMM ?? "00:00";
+    return ta.localeCompare(tb);
+  });
+
+  for (const alarm of sorted) {
+    const item = document.createElement("div");
+    item.className = "alarmItem";
+
+    const left = document.createElement("div");
+    left.className = "alarmLeft";
+    const time = document.createElement("div");
+    time.className = "alarmTime";
+    time.textContent = formatTime(alarm.timeHHMM);
+    const label = document.createElement("div");
+    label.className = "alarmLabel";
+    label.textContent = alarm.label || "Alarm";
+    left.appendChild(time);
+    left.appendChild(label);
+
+    const right = document.createElement("div");
+    right.className = "alarmRight";
+
+    const switchWrap = document.createElement("label");
+    switchWrap.className = "switch";
+    const chk = document.createElement("input");
+    chk.type = "checkbox";
+    chk.checked = Boolean(alarm.enabled);
+    chk.addEventListener("change", () => {
+      alarm.enabled = chk.checked;
+      if (alarm.enabled) {
+        alarm.nextAt = computeNextAlarmTimestamp(alarm.timeHHMM);
+      }
+      saveState();
+      updateUIFromState();
+    });
+    const slider = document.createElement("span");
+    slider.className = "slider";
+    switchWrap.appendChild(chk);
+    switchWrap.appendChild(slider);
+
+    const del = document.createElement("button");
+    del.className = "iconBtn ghost";
+    del.textContent = "🗑";
+    del.title = "Delete alarm";
+    del.addEventListener("click", () => {
+      if (!confirm("Delete this alarm?")) return;
+      state.alarms = state.alarms.filter((a) => a.id !== alarm.id);
+      saveState();
+      updateUIFromState();
+    });
+
+    right.appendChild(switchWrap);
+    right.appendChild(del);
+
+    item.appendChild(left);
+    item.appendChild(right);
+    alarmsListEl.appendChild(item);
+  }
+}
+
+function updateUIFromState() {
+  snoozeMinEl.value = String(state.snoozeMin ?? 5);
+  volumeEl.value = String(state.volume ?? 70);
+
+  difficultyEl.value = state.settings?.difficulty ?? "easy";
+  questionsToStopEl.value = String(state.settings?.questionsToStop ?? 2);
+  allowNegEl.checked = Boolean(state.settings?.allowNeg);
+
+  // ops multi-select
+  const ops = new Set(state.settings?.ops ?? ["add", "sub"]);
+  Array.from(opsEl.options).forEach((opt) => {
+    opt.selected = ops.has(opt.value);
+  });
+
+  normalizeAlarms();
+  renderAlarmsList();
+
+  const next = getNextEnabledAlarm();
+  if (ringing) {
+    setStatus("RINGING", "ring");
+    nextRing.textContent = "";
+    return;
+  }
+  if (next) {
+    const d = new Date(next.nextAt);
+    setStatus(`Next alarm: ${formatTime(next.timeHHMM)}`, "ok");
+    nextRing.textContent = `Next ring: ${d.toLocaleString()}`;
+  } else {
+    setStatus("No alarm enabled");
+    nextRing.textContent = "";
+  }
+}
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = (state.volume ?? 70) / 100;
+  masterGain.connect(audioCtx.destination);
+}
+
+function startBeep() {
+  initAudio();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  if (beepOsc) return;
+
+  // Oscillator -> masterGain
+  beepOsc = audioCtx.createOscillator();
+  beepOsc.type = "square";
+  beepOsc.frequency.value = 880;
+
+  // LFO for pulsing effect (like an alarm)
+  beepLfo = audioCtx.createOscillator();
+  beepLfo.type = "sine";
+  beepLfo.frequency.value = 2.6; // pulses per second
+
+  beepLfoGain = audioCtx.createGain();
+  beepLfoGain.gain.value = 0.6; // modulation depth
+
+  // Gain node for oscillator, modulated by LFO
+  const oscGain = audioCtx.createGain();
+  oscGain.gain.value = 0.5;
+
+  // LFO -> oscGain.gain
+  beepLfo.connect(beepLfoGain);
+  beepLfoGain.connect(oscGain.gain);
+
+  beepOsc.connect(oscGain);
+  oscGain.connect(masterGain);
+
+  const now = audioCtx.currentTime;
+  beepOsc.start(now);
+  beepLfo.start(now);
+}
+
+function stopBeep() {
+  try {
+    if (beepOsc) beepOsc.stop();
+  } catch {}
+  try {
+    if (beepLfo) beepLfo.stop();
+  } catch {}
+  beepOsc = null;
+  beepLfo = null;
+  beepLfoGain = null;
+}
+
+function applyVolume() {
+  if (masterGain) masterGain.gain.value = (state.volume ?? 70) / 100;
+}
+
+function makeQuestion(settings) {
+  // User asked for easy math to stop the alarm. Keep it easy by default.
+  const difficulty = settings.difficulty ?? "easy";
+  const allowNeg = Boolean(settings.allowNeg);
+  const ops = settings.ops?.length ? settings.ops : ["add"];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+
+  let aMin, aMax, bMin, bMax;
+  if (difficulty === "easy") {
+    aMin = 1; aMax = 20;
+    bMin = 1; bMax = 20;
+  } else if (difficulty === "medium") {
+    aMin = 10; aMax = 99;
+    bMin = 2; bMax = 30;
+  } else {
+    aMin = 50; aMax = 500;
+    bMin = 2; bMax = 99;
+  }
+
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  let a = randInt(aMin, aMax);
+  let b = randInt(bMin, bMax);
+
+  if (op === "sub" && !allowNeg) {
+    // ensure non-negative result
+    if (b > a) [a, b] = [b, a];
+  }
+
+  if (op === "div") {
+    // create clean integer division
+    // pick divisor b, quotient q, then a = b*q
+    const divisor = randInt(2, Math.min(12, bMax));
+    const qMax = difficulty === "easy" ? 12 : (difficulty === "medium" ? 20 : 30);
+    const q = randInt(2, qMax);
+    b = divisor;
+    a = divisor * q;
+  }
+
+  let answer, text;
+  if (op === "add") {
+    answer = a + b;
+    text = `${a} + ${b} = ?`;
+  } else if (op === "sub") {
+    answer = a - b;
+    text = `${a} − ${b} = ?`;
+  } else if (op === "mul") {
+    answer = a * b;
+    text = `${a} × ${b} = ?`;
+  } else {
+    answer = a / b;
+    text = `${a} ÷ ${b} = ?`;
+  }
+  return { a, b, op, answer, text };
+}
+
+function openRingModal() {
+  ringBackdrop.classList.remove("hidden");
+  answerError.classList.add("hidden");
+  stopBtn.disabled = true;
+  answerInput.value = "";
+  answerInput.focus();
+}
+
+function closeRingModal() {
+  ringBackdrop.classList.add("hidden");
+}
+
+function openAddModal() {
+  addBackdrop.classList.remove("hidden");
+  alarmTimeEl.value = "";
+  alarmLabelEl.value = "";
+  alarmTimeEl.focus();
+}
+
+function closeAddModal() {
+  addBackdrop.classList.add("hidden");
+}
+
+function updateRingClock() {
+  ringClock.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function startRinging(alarm, reason = "Alarm") {
+  if (ringing) return;
+  ringing = true;
+  ringingAlarmId = alarm?.id ?? null;
+  setStatus("RINGING", "ring");
+
+  ringTitle.textContent = reason;
+  ringLabel.textContent = alarm?.label ? `“${alarm.label}”` : "";
+
+  remainingQuestions = Number(state.settings.questionsToStop ?? 2);
+  currentQuestion = makeQuestion(state.settings);
+  questionText.textContent = currentQuestion.text;
+  progressText.textContent = `Solve ${remainingQuestions} question(s) to stop`;
+  updateRingClock();
+
+  openRingModal();
+  startBeep();
+
+  // Keep clock updated while ringing
+  ringTimer = window.setInterval(updateRingClock, 1000);
+
+  // Try vibration where available (mobile)
+  try {
+    if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 800]);
+  } catch {}
+}
+
+function stopRinging() {
+  ringing = false;
+  const alarm = state.alarms.find((a) => a.id === ringingAlarmId);
+  ringingAlarmId = null;
+  stopBeep();
+  if (ringTimer) window.clearInterval(ringTimer);
+  ringTimer = null;
+  closeRingModal();
+
+  // Repeat daily: schedule next occurrence for the alarm that rang.
+  if (alarm) {
+    alarm.nextAt = computeNextAlarmTimestamp(alarm.timeHHMM);
+  }
+  saveState();
+  updateUIFromState();
+}
+
+function snooze() {
+  const min = Number(state.snoozeMin ?? 5);
+  if (!min) return;
+  const alarm = state.alarms.find((a) => a.id === ringingAlarmId);
+  if (alarm) alarm.nextAt = Date.now() + min * 60 * 1000;
+  saveState();
+  updateUIFromState();
+
+  // stop current ring, but keep alarm scheduled
+  ringing = false;
+  stopBeep();
+  if (ringTimer) window.clearInterval(ringTimer);
+  ringTimer = null;
+  closeRingModal();
+}
+
+function handleSubmitAnswer() {
+  if (!currentQuestion) return;
+  const raw = answerInput.value.trim();
+  if (!raw) return;
+
+  const userAns = Number(raw);
+  const ok = Number.isFinite(userAns) && userAns === currentQuestion.answer;
+  if (!ok) {
+    answerError.classList.remove("hidden");
+    answerInput.select();
+    return;
+  }
+
+  answerError.classList.add("hidden");
+  remainingQuestions -= 1;
+
+  if (remainingQuestions <= 0) {
+    progressText.textContent = "Solved! You can stop now.";
+    stopBtn.disabled = false;
+    // still require explicit "Stop" click, so they don't accidentally dismiss
+    questionText.textContent = "All done.";
+    currentQuestion = null;
+    answerInput.value = "";
+    answerInput.blur();
+    return;
+  }
+
+  currentQuestion = makeQuestion(state.settings);
+  questionText.textContent = currentQuestion.text;
+  progressText.textContent = `Solve ${remainingQuestions} question(s) to stop`;
+  answerInput.value = "";
+  answerInput.focus();
+}
+
+function tick() {
+  // update next ring text accuracy (optional)
+  if (ringing) return;
+  normalizeAlarms();
+  const next = getNextEnabledAlarm();
+  if (!next) return;
+  const ms = next.nextAt - Date.now();
+  if (ms <= 0) startRinging(next, "Alarm");
+}
+
+function startTicker() {
+  if (tickTimer) window.clearInterval(tickTimer);
+  tickTimer = window.setInterval(tick, 250);
+}
+
+function saveSettingsFromUI() {
+  state.snoozeMin = Number(snoozeMinEl.value);
+  state.volume = Number(volumeEl.value);
+  state.settings = {
+    difficulty: difficultyEl.value,
+    ops: getSelectedOps(),
+    questionsToStop: Number(questionsToStopEl.value),
+    allowNeg: allowNegEl.checked,
+  };
+}
+
+function addAlarmFromInputs() {
+  const time = alarmTimeEl.value;
+  if (!time) {
+    alert("Please choose a time.");
+    return;
+  }
+  const label = alarmLabelEl.value.trim();
+  const alarm = {
+    id: uuid(),
+    timeHHMM: time,
+    label,
+    enabled: true,
+    nextAt: computeNextAlarmTimestamp(time),
+  };
+  state.alarms.push(alarm);
+  saveState();
+  updateUIFromState();
+  closeAddModal();
+}
+
+// Wire events
+addAlarmOpenBtn.addEventListener("click", () => {
+  // Ensure audio can play later (browser gesture requirement)
+  try { initAudio(); if (audioCtx.state === "suspended") audioCtx.resume(); } catch {}
+  openAddModal();
+});
+
+addCloseBtn.addEventListener("click", closeAddModal);
+addCancelBtn.addEventListener("click", closeAddModal);
+addBackdrop.addEventListener("click", (e) => {
+  if (e.target === addBackdrop) closeAddModal();
+});
+addSaveBtn.addEventListener("click", addAlarmFromInputs);
+
+alarmTimeEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") addAlarmFromInputs();
+});
+alarmLabelEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") addAlarmFromInputs();
+});
+
+volumeEl.addEventListener("input", () => {
+  state.volume = Number(volumeEl.value);
+  applyVolume();
+  saveState();
+});
+
+snoozeMinEl.addEventListener("change", () => {
+  state.snoozeMin = Number(snoozeMinEl.value);
+  saveState();
+});
+
+difficultyEl.addEventListener("change", () => { saveSettingsFromUI(); saveState(); });
+opsEl.addEventListener("change", () => { saveSettingsFromUI(); saveState(); });
+questionsToStopEl.addEventListener("change", () => { saveSettingsFromUI(); saveState(); });
+allowNegEl.addEventListener("change", () => { saveSettingsFromUI(); saveState(); });
+
+testSoundBtn.addEventListener("click", async () => {
+  try { initAudio(); if (audioCtx.state === "suspended") await audioCtx.resume(); } catch {}
+  startBeep();
+  window.setTimeout(stopBeep, 1200);
+});
+
+submitAnswerBtn.addEventListener("click", handleSubmitAnswer);
+answerInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleSubmitAnswer();
+});
+
+snoozeBtn.addEventListener("click", () => {
+  if (!Number(state.snoozeMin)) {
+    answerError.classList.remove("hidden");
+    answerError.textContent = "Snooze is off. Solve to stop.";
+    return;
+  }
+  snooze();
+});
+
+stopBtn.addEventListener("click", () => stopRinging());
+
+// Restore + start
+loadState();
+normalizeAlarms();
+updateUIFromState();
+startTicker();
+
+// Splash animation on start
+window.addEventListener("load", () => {
+  // show at least a short moment so user sees the animation
+  const MIN_MS = 900;
+  window.setTimeout(() => {
+    splashEl.classList.add("splashHide");
+    splashEl.setAttribute("aria-hidden", "true");
+    // remove from layout after fade
+    window.setTimeout(() => splashEl.remove(), 450);
+  }, MIN_MS);
+});
+
+// Keep next ring text live-ish
+window.setInterval(() => {
+  if (ringing) return;
+  normalizeAlarms();
+  const next = getNextEnabledAlarm();
+  if (!next) return;
+  const d = new Date(next.nextAt);
+  nextRing.textContent = `Next ring: ${d.toLocaleString()}`;
+}, 1000);
+    </script>
+  </body>
+</html>
